@@ -3,13 +3,13 @@ ARG GO_VERSION=1.17
 ARG ALPINE_VERSION=3.14
 
 FROM golang:$GO_VERSION-alpine$ALPINE_VERSION as build
-ENV GOARCH=amd64 GOOS=linux
+ENV GOARCH=arm64 GOOS=linux
 WORKDIR /azcopy
 ARG AZCOPY_VERSION
-RUN wget "https://github.com/Azure/azure-storage-azcopy/archive/v$AZCOPY_VERSION.tar.gz" -O src.tgz
-RUN tar xf src.tgz --strip 1 \
- && go build -o azcopy \
- && ./azcopy --version
+RUN wget RUN wget "https://github.com/Azure/azure-storage-azcopy/archive/v10.12.2.tar.gz" -O src.tgz --no-check-certificate
+RUN tar xf src.tgz --strip 1 
+RUN go build -o azcopy 
+RUN ./azcopy --version
 
 FROM alpine:$ALPINE_VERSION as release
 ARG AZCOPY_VERSION

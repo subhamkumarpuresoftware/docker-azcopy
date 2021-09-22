@@ -1,6 +1,6 @@
 ---
 
-dist: bionic
+dist: focal
 
 services:
   - docker
@@ -36,7 +36,24 @@ jobs:
         - LATEST_AZCOPY="$(curl -sLo- https://api.github.com/repos/Azure/azure-storage-azcopy/releases | jq -r '.[0].tag_name' | sed 's/^v//g')"
         - test -n "$LATEST_AZCOPY"
         - export LATEST_AZCOPY
+        - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        - sudo apt-get update
+        - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+        - sudo service docker restart
+        - sudo service docker status
+        - docker --version
+        - docker buildx version
       script:
-        - docker build --build-arg AZCOPY_VERSION="$LATEST_AZCOPY" -t docker-azcopy:$TRAVIS_COMMIT .
+        - docker buildx create --name samplekit
+        - docker buildx use samplekit
+        - docker buildx inspect --bootstrap
+        - docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+        - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        - travis_wait 30 docker buildx build --build-arg AZCOPY_VERSION="$LATEST_AZCOPY" -t $DOCKER_USERNAME/docker-azcopy:$TRAVIS_COMMIT --platform linux/amd64,linux/arm64 --push . >> /dev/null 2>&1 
+        - docker buildx rm samplekit
       after_success:
-        - docker run --rm docker-azcopy:$TRAVIS_COMMIT azcopy --version
+        - docker run --rm $DOCKER_USERNAME/docker-azcopy:$TRAVIS_COMMIT azcopy --version
+
+notifications:
+  email: false
