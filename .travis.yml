@@ -48,12 +48,12 @@ jobs:
         - docker buildx create --name samplekit
         - docker buildx use samplekit
         - docker buildx inspect --bootstrap
-        - docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+        - docker login -u subham328 -p Ak@sh328
         - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        - travis_wait 30 docker buildx build --build-arg AZCOPY_VERSION="$LATEST_AZCOPY" -t $DOCKER_USERNAME/docker-azcopy:$TRAVIS_COMMIT --platform linux/amd64,linux/arm64 --push . >> /dev/null 2>&1 
+        - travis_wait 30 docker buildx build --build-arg AZCOPY_VERSION="$LATEST_AZCOPY" -t subham328/docker-azcopy:$TRAVIS_COMMIT --platform linux/amd64,linux/arm64 --push . >> /dev/null 2>&1 
         - docker buildx rm samplekit
       after_success:
-        - docker run --rm $DOCKER_USERNAME/docker-azcopy:$TRAVIS_COMMIT azcopy --version
+        - docker run --rm subham328/docker-azcopy:$TRAVIS_COMMIT azcopy --version
 
 notifications:
   email: false
